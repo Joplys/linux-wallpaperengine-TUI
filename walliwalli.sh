@@ -17,6 +17,7 @@ WE_ARGS_DEFAULT="--volume 100"
 FILTER_TYPE=""
 FILTER_RATING=""
 FILTER_TAGS=""
+STATUS_FILE="$HOME/.cache/walliwalli/.status"
 WE_WORKSHOP_PATHS=(
     "$HOME/.steam/steam/steamapps/workshop/content/431960"
     "$HOME/.local/share/Steam/steamapps/workshop/content/431960"
@@ -127,13 +128,13 @@ select_color_tool() {
 }
 
 edit_walldir() {
-    echo "Edit wallpaper directory (Enter to confirm, Ctrl+C to cancel):"
     local new_path
-    read -e -i "$WALLDIR" -r new_path
+    new_path=$(fzf "${FZF_MENU_OPTS[@]}" --prompt="Wallpaper dir > "         --print-query --no-info --query "$WALLDIR" < /dev/null)
+    [[ $? -ne 0 && $? -ne 1 ]] && return
+    new_path=$(head -1 <<< "$new_path")
     [[ -z "$new_path" ]] && return
     if [[ ! -d "$new_path" ]]; then
-        echo "Error: directory does not exist."
-        sleep 1
+        printf '%s' "Error: directory does not exist." > "$STATUS_FILE"
         return
     fi
     WALLDIR="$new_path"
@@ -142,10 +143,10 @@ edit_walldir() {
 }
 
 edit_we_args() {
-    echo "Edit wallpaper engine arguments (Enter to confirm, Ctrl+C to cancel):"
-    local new_args
-    read -e -i "$WE_ARGS" -r new_args
-    [[ -z "$new_args" ]] && return
+    local new_args raw
+    raw=$(fzf "${FZF_MENU_OPTS[@]}" --prompt="WE args > "         --print-query --no-info --query "$WE_ARGS" < /dev/null)
+    [[ $? -ne 0 && $? -ne 1 ]] && return
+    new_args=$(head -1 <<< "$raw")
     WE_ARGS="$new_args"
     read -ra WE_ARGS_ARR <<< "$WE_ARGS"
     printf '%s\n' "$WE_ARGS" > "$WE_ARGS_FILE"
@@ -181,14 +182,12 @@ toggle_audio() {
 
 stop_wallpaper() {
     kill_wallpaper
-    echo "Wallpaper stopped on $SCREEN."
-    sleep 1
+    printf '%s' "Wallpaper stopped on $SCREEN." > "$STATUS_FILE"
 }
 
 show_current_wallpaper() {
     if [[ ! -f "$LAST_DIR/we-last-wallpaper-${SCREEN}" ]]; then
-        echo "No wallpaper has been launched yet."
-        sleep 1
+        printf '%s' "No wallpaper has been launched yet." > "$STATUS_FILE"
         return
     fi
     local wallpath
@@ -196,8 +195,7 @@ show_current_wallpaper() {
     local title type
     IFS='|' read -r title type _ < <(grep -F "$wallpath" "$CACHE")
     if [[ -z "$title" ]]; then
-        echo "Current wallpaper not found in cache."
-        sleep 1
+        printf '%s' "Current wallpaper not found in cache." > "$STATUS_FILE"
         return
     fi
     echo "Title: $title"
@@ -209,25 +207,24 @@ show_current_wallpaper() {
 
 manage_hidden_list() {
     while true; do
-        case $(printf 'Export hidden list\nImport hidden list\nBack' | fzf_menu "Hidden list") in
+        local choice
+        choice=$(printf 'Export hidden list\nImport hidden list\nBack' | fzf_menu "Hidden list")
+        case "$choice" in
             "Export hidden list")
                 local dest
                 read -e -i "$HOME/walliwalli-hidden.txt" -r -p "Export to: " dest
                 [[ -z "$dest" ]] && continue
-                cp "$HIDDEN" "$dest" && echo "Exported to $dest." || echo "Export failed."
-                sleep 1
+                cp "$HIDDEN" "$dest" && printf '%s' "Exported to $dest." > "$STATUS_FILE" || printf '%s' "Export failed." > "$STATUS_FILE"
                 ;;
             "Import hidden list")
                 local src
                 read -e -r -p "Import from: " src
                 [[ -z "$src" ]] && continue
                 if [[ ! -f "$src" ]]; then
-                    echo "File not found."
-                    sleep 1
+                    printf '%s' "File not found." > "$STATUS_FILE"
                     continue
                 fi
-                cp "$src" "$HIDDEN" && echo "Imported from $src." || echo "Import failed."
-                sleep 1
+                cp "$src" "$HIDDEN" && printf '%s' "Imported from $src." > "$STATUS_FILE" || printf '%s' "Import failed." > "$STATUS_FILE"
                 ;;
             "Back"|"") return ;;
         esac
@@ -250,7 +247,7 @@ needs_rebuild() {
 }
 
 build_cache() {
-    echo "Building wallpaper cache..."
+    printf '%s' "Building wallpaper cache..." > "$STATUS_FILE"
     [[ ${#WALLPAPER_FILES[@]} -eq 0 ]] && > "$CACHE" && return
     jq -rn 'inputs | "\(.title // "Unknown")|\(.type // "unknown")|\(.contentrating // "Everyone")|\((.tags // []) | join(","))|\(input_filename | gsub("/project\\.json$"; "/"))"' \
         "${WALLPAPER_FILES[@]}" > "$CACHE"
@@ -268,14 +265,21 @@ refresh_screens() {
 }
 
 fzf_menu() {
-    fzf "${FZF_MENU_OPTS[@]}" --prompt="$1 > "
+    local header_opt=()
+    if [[ -s "$STATUS_FILE" ]]; then
+        header_opt=(--header "$(< "$STATUS_FILE")")
+        > "$STATUS_FILE"
+    fi
+    fzf "${FZF_MENU_OPTS[@]}" --prompt="$1 > " "${header_opt[@]}"
 }
 
 wallpaper_menu() {
     while true; do
         local audio_label="Toggle audio (currently: ON)"
         [[ "$WE_ARGS" =~ --volume\ 0([^-9]|$) ]] && audio_label="Toggle audio (currently: OFF)"
-        case $(printf '%s\nShow current wallpaper\nStop wallpaper\nBack' "$audio_label" | fzf_menu "Wallpaper") in
+        local choice
+        choice=$(printf '%s\nShow current wallpaper\nStop wallpaper\nBack' "$audio_label" | fzf_menu "Wallpaper")
+        case "$choice" in
             Toggle\ audio*) toggle_audio ;;
             "Show current wallpaper") show_current_wallpaper ;;
             "Stop wallpaper") stop_wallpaper ;;
@@ -286,7 +290,9 @@ wallpaper_menu() {
 
 screens_menu() {
     while true; do
-        case $(printf 'Select screen (current: %s)\nRefresh screens\nBack' "$SCREEN" | fzf_menu "Screens") in
+        local choice
+        choice=$(printf 'Select screen (current: %s)\nRefresh screens\nBack' "$SCREEN" | fzf_menu "Screens")
+        case "$choice" in
             Select\ screen*) select_screen ;;
             "Refresh screens") refresh_screens ;;
             "Back"|"") return ;;
@@ -296,7 +302,9 @@ screens_menu() {
 
 library_menu() {
     while true; do
-        case $(printf 'Manage hidden wallpapers\nManage hidden list\nEdit wallpaper directory\nReload cache\nBack' | fzf_menu "Library") in
+        local choice
+        choice=$(printf 'Manage hidden wallpapers\nManage hidden list\nEdit wallpaper directory\nReload cache\nBack' | fzf_menu "Library")
+        case "$choice" in
             "Manage hidden wallpapers") manage_hidden ;;
             "Manage hidden list") manage_hidden_list ;;
             "Edit wallpaper directory") edit_walldir ;;
@@ -308,8 +316,10 @@ library_menu() {
 
 filter_menu() {
     while true; do
-        case $(printf 'By type (current: %s)\nBy rating (current: %s)\nBy tag (current: %s)\nClear all filters\nBack' \
-            "${FILTER_TYPE:-All}" "${FILTER_RATING:-All}" "${FILTER_TAGS:-All}" | fzf_menu "Filter") in
+        local choice
+        choice=$(printf 'By type (current: %s)\nBy rating (current: %s)\nBy tag (current: %s)\nClear all filters\nBack' \
+            "${FILTER_TYPE:-All}" "${FILTER_RATING:-All}" "${FILTER_TAGS:-All}" | fzf_menu "Filter")
+        case "$choice" in
             By\ type*)   filter_by_type ;;
             By\ rating*) filter_by_rating ;;
             By\ tag*)    filter_by_tags ;;
@@ -323,7 +333,9 @@ settings_menu() {
     while true; do
         local backend_opt=""
         [[ "$COLOR_TOOL" == pywal* ]] && backend_opt=$'\n'"pywal backend (current: $PYWAL_BACKEND)"
-        case $(printf 'Wallpaper\nScreens\nLibrary\nEdit wallpaper engine arguments\nColor tool (current: %s)%s\nFilters\nBack' "$COLOR_TOOL" "$backend_opt" | fzf_menu "Settings") in
+        local choice
+        choice=$(printf 'Wallpaper\nScreens\nLibrary\nEdit wallpaper engine arguments\nColor tool (current: %s)%s\nFilters\nBack' "$COLOR_TOOL" "$backend_opt" | fzf_menu "Settings")
+        case "$choice" in
             "Wallpaper") wallpaper_menu ;;
             "Screens") screens_menu ;;
             "Library") library_menu ;;
@@ -338,7 +350,9 @@ settings_menu() {
 
 manage_hidden() {
     while true; do
-        case $(printf 'Hide a wallpaper\nUnhide a wallpaper\nBack' | fzf_menu "Hidden wallpapers") in
+        local choice
+        choice=$(printf 'Hide a wallpaper\nUnhide a wallpaper\nBack' | fzf_menu "Hidden wallpapers")
+        case "$choice" in
             "Hide a wallpaper")
                 [[ ! -s "$CACHE" ]] && continue
                 to_hide=$(grep -vFf "$HIDDEN" "$CACHE" | fzf \
@@ -388,7 +402,7 @@ get_input() {
 # --- init ---
 
 mkdir -p "$HOME/.cache/walliwalli" "$HOME/.config/walliwalli"
-touch "$HIDDEN"
+touch "$HIDDEN" "$STATUS_FILE"
 load_walldir
 
 [[ -n "$WALLDIR" ]] && collect_wallpaper_files
