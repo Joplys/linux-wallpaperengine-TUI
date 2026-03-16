@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+clear
 WALLDIR_FILE="$HOME/.config/walliwalli/walldir"
 CACHE="$HOME/.cache/walliwalli/we-wallpapers"
 HIDDEN="$HOME/.config/walliwalli/hidden"
