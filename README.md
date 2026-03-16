@@ -9,6 +9,11 @@ A lightweight, fast, linux-wallpaperengine UI by me!~
 - [jq](https://stedolan.github.io/jq/)
 - [inotify-tools](https://github.com/inotify-tools/inotify-tools)
 
+**Required (but you get to choose between them OwO)**
+- [xrandr](https://www.x.org/wiki/Projects/XRandR/)
+- [wlr-randr](https://sr.ht/~emersion/wlr-randr/)
+If you're on hyprland don't worry about this, hyprctl is an option too.
+
 **Optional (color tools):**
 - [wallust](https://codeberg.org/explosion-mental/wallust) - the best btw
 - [pywal](https://github.com/dylanaraps/pywal) - deprecated, while it is supported do not use it please!
