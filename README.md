@@ -11,7 +11,8 @@ A lightweight, fast, linux-wallpaperengine UI by me!~
 
 **Required depending on setup(O_O):**
 - [xrandr](https://www.x.org/wiki/Projects/XRandR/)
-- If you're on wayland don't worry about this, wlr-randr exists, and if you're on hyprland hyprctl is an option too (^ᗜ^ )
+- [wlr-randr](https://sr.ht/~emersion/wlr-randr/)
+- If you're on hyprland hyprctl is an option so don't worry about it (^ᗜ^ )
 
 **Optional (color tools):**
 - [wallust](https://codeberg.org/explosion-mental/wallust) - the best btw
