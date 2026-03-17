@@ -44,7 +44,7 @@ On first run, the TUI should (SHOULD NOT WILL) automatically detect your Steam/W
 Just run:
 
 ```bash
-walliwalli
+walliwalli.sh
 ```
 
 A cool fuzzy-searchable list of your wallpaperengine wallpapers should appear, if it doesn't then your directory wasn't detected so go to settings and add it :<
