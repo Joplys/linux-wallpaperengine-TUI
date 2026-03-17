@@ -54,8 +54,10 @@ Press Escape or Ctrl+C to exit without launching anything.
 If you want to restore the wallpaper you were using after turning off your computer you can just add this to your autostart file
 
 ```bash
-linux-wallpaperengine --screen-root DP-3 --volume 100 --fullscreen-pause-only-active --fps 30 --bg "$(<$HOME/.cache/walliwalli/we-last-wallpaper-DP-3)"
+linux-wallpaperengine --screen-root DP-3 --volume 100 --bg "$(<$HOME/.cache/walliwalli/we-last-wallpaper-DP-3)"
 ```
+
+Remember to change the arguments of the autostart script btw
 
 Oh also the settings menu is really useful, GO CHECK IT, you WILL use it.
 
