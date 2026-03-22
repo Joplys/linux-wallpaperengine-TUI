@@ -10,8 +10,8 @@ A lightweight, fast, universal, linux-wallpaperengine TUI by me!~
 - [inotify-tools](https://github.com/inotify-tools/inotify-tools)
 
 **Required depending on setup(O_O):**
-- [xrandr](https://www.x.org/wiki/Projects/XRandR/)
-- [wlr-randr](https://sr.ht/~emersion/wlr-randr/)
+- [xrandr](https://www.x.org/wiki/Projects/XRandR/) - for X11
+- [wlr-randr](https://sr.ht/~emersion/wlr-randr/) - for wayland
 - If you're on hyprland hyprctl is an option so don't worry about it (^ᗜ^ )
 
 **Optional (color tools):**
