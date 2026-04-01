@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-
 clear
-WALLDIR_FILE="$HOME/.config/walliwalli/walldir"
-CACHE="$HOME/.cache/walliwalli/we-wallpapers"
-HIDDEN="$HOME/.config/walliwalli/hidden"
-SCREENS_FILE="$HOME/.config/walliwalli/screens"
-SCREEN_FILE="$HOME/.config/walliwalli/screen"
-WE_ARGS_FILE="$HOME/.config/walliwalli/we-args"
-COLOR_TOOL_FILE="$HOME/.config/walliwalli/color-tool"
-PYWAL_BACKEND_FILE="$HOME/.config/walliwalli/pywal-backend"
+
+WALLIWALLI_CONFIG_DIR="$HOME/.config/walliwalli/"
+WALLDIR_FILE="$WALLIWALLI_CONFIG_DIR/walldir"
+CACHE="$WALLIWALLI_CONFIG_DIR/we-wallpapers"
+HIDDEN="$WALLIWALLI_CONFIG_DIR/hidden"
+SCREENS_FILE="$WALLIWALLI_CONFIG_DIR/screens"
+SCREEN_FILE="$WALLIWALLI_CONFIG_DIR/screen"
+WE_ARGS_FILE="$WALLIWALLI_CONFIG_DIR/we-args"
+COLOR_TOOL_FILE="$WALLIWALLI_CONFIG_DIR/color-tool"
+PYWAL_BACKEND_FILE="$WALLIWALLI_CONFIG_DIR/pywal-backend"
+
 COLOR_TOOL_DEFAULT="none"
 PYWAL_BACKEND_DEFAULT="haishoku"
 LAST_DIR="$HOME/.cache/walliwalli"
@@ -19,6 +21,7 @@ FILTER_TYPE=""
 FILTER_RATING=""
 FILTER_TAGS=""
 STATUS_FILE="$HOME/.cache/walliwalli/.status"
+
 WE_WORKSHOP_PATHS=(
     "$HOME/.steam/steam/steamapps/workshop/content/431960"
     "$HOME/.local/share/Steam/steamapps/workshop/content/431960"
@@ -406,7 +409,7 @@ get_input() {
 
 # --- init ---
 
-mkdir -p "$HOME/.cache/walliwalli" "$HOME/.config/walliwalli"
+mkdir -p "$HOME/.cache/walliwalli" "$WALLIWALLI_CONFIG_DIR/"
 touch "$HIDDEN" "$STATUS_FILE"
 load_walldir
 
